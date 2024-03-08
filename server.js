@@ -86,6 +86,62 @@ router.post('/signin', function (req, res) {
     })
 });
 
+router.route('/movies')
+.get((req, res) => {
+    Movie.find({}, (err, movies) => {
+        if (err) {
+            res.status(400).send(err);
+        } else {
+            res.status(200).json(movies);
+        }
+    });
+    })
+    .post((req, res) => {
+        const { title, releaseDate, genre, actors } = req.body;
+    
+        if (!title ||  !releaseDate || !genre || !actors || actors.length === 0) {
+            return res.status(400).json({ error: 'Title, release date, genre, and at least one actor are required' });
+        }
+    
+        try {
+            const movie = new Movie({ title, releaseDate, genre, actors });
+            movie.save();
+            res.status(200).json(movie);
+        } catch (error) {
+            console.error('Error creating movie:', error);
+            res.status(500).json({ error: 'Failed to create movie' });
+        }
+    })
+    .delete(authController.isAuthenticated, (req, res) => {
+        // Assuming the movie's ID is passed in the URL as a parameter
+        const movieId = req.params.id;
+        // Use the Movie model to delete the movie by its ID
+        Movie.findByIdAndRemove(movieId, (err, deletedMovie) => {
+            if (err) {
+                // If there's an error, send a server error response
+                return res.status(500).json({ message: "Internal server error", error: err });
+            }
+            if (!deletedMovie) {
+                // If no movie is found, send a not found response
+                return res.status(404).json({ message: "Movie not found" });
+            }
+            // If the deletion is successful, send a success response
+            // You could also return the deletedMovie if you need to use it
+            return res.status(200).json({ message: "Movie successfully deleted" });
+        });
+    })
+    
+    .put(authJwtController.isAuthenticated, (req, res) => {
+        console.log(req.body);
+        res = res.status(200);
+        if (req.get('Content-Type')) {
+            res = res.type(req.get('Content-Type'));
+        }
+        var o = getJSONObjectForMovieRequirement(req);
+        res.json(o);
+    }
+    );
+
 app.use('/', router);
 app.listen(process.env.PORT || 8080);
 module.exports = app; // for testing only
