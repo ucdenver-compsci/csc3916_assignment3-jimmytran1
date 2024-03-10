@@ -131,7 +131,7 @@ router.route('/movies/:title')
         }
     });
 })
-.delete(authController.isAuthenticated, (req, res) => {
+.delete((req, res) => {
     // Assuming the movie's title is passed in the request body
     const movieTitle = req.body.title;
 
