@@ -132,10 +132,11 @@ router.route('/movies/:title')
     });
 })
 .delete(authController.isAuthenticated, (req, res) => {
-    // Assuming the movie's ID is passed in the URL as a parameter
-    const movieId = req.params.id;
-    // Use the Movie model to delete the movie by its ID
-    Movie.findByIdAndRemove(movieId, (err, deletedMovie) => {
+    // Assuming the movie's title is passed in the request body
+    const movieTitle = req.body.title;
+
+    // Use the Movie model to find and delete the movie by its title
+    Movie.findOneAndDelete({ title: movieTitle }, (err, deletedMovie) => {
         if (err) {
             // If there's an error, send a server error response
             return res.status(500).json({ message: "Internal server error", error: err });
