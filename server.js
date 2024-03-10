@@ -131,9 +131,9 @@ router.route('/movies/:title')
         }
     });
 })
-.delete((req, res) => {
+.delete(authController.isAuthenticated, (req, res) => {
     // Assuming the movie's title is passed in the request body
-    const movieTitle = req.body.title;
+    const movieTitle = req.params.title;
 
     // Use the Movie model to find and delete the movie by its title
     Movie.findOneAndDelete({ title: movieTitle }, (err, deletedMovie) => {
