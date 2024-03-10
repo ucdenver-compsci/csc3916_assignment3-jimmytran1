@@ -118,7 +118,7 @@ router.route('/movies')
         }
     });
 
-router.route('/movies:title')
+router.route('/movies/:title')
 .get((req, res) => {
     const movieTitle = req.params.title;
     Movie.find({ title: movieTitle }, (err, movie) => {
