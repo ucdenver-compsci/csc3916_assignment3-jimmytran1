@@ -116,36 +116,55 @@ router.route('/movies')
             console.error('Error creating movie:', error);
             res.status(500).json({ error: 'Failed to create movie' });
         }
-    })
-    .delete(authController.isAuthenticated, (req, res) => {
-        // Assuming the movie's ID is passed in the URL as a parameter
-        const movieId = req.params.id;
-        // Use the Movie model to delete the movie by its ID
-        Movie.findByIdAndRemove(movieId, (err, deletedMovie) => {
-            if (err) {
-                // If there's an error, send a server error response
-                return res.status(500).json({ message: "Internal server error", error: err });
-            }
-            if (!deletedMovie) {
-                // If no movie is found, send a not found response
-                return res.status(404).json({ message: "Movie not found" });
-            }
-            // If the deletion is successful, send a success response
-            // You could also return the deletedMovie if you need to use it
-            return res.status(200).json({ message: "Movie successfully deleted" });
-        });
-    })
-    
-    .put(authJwtController.isAuthenticated, (req, res) => {
-        console.log(req.body);
-        res = res.status(200);
-        if (req.get('Content-Type')) {
-            res = res.type(req.get('Content-Type'));
+    });
+
+router.route('/movies:title')
+.get((req, res) => {
+    const movieTitle = req.params.title;
+    Movie.find({ title: movieTitle }, (err, movie) => {
+        if (err) {
+            res.status(400).send(err);
+        } else if (movie.length === 0) {
+            res.status(404).json({ error: 'Movie not found' });
+        } else {
+            res.status(200).json(movie);
         }
-        var o = getJSONObjectForMovieRequirement(req);
-        res.json(o);
-    }
-    );
+    });
+})
+.delete(authController.isAuthenticated, (req, res) => {
+    // Assuming the movie's ID is passed in the URL as a parameter
+    const movieId = req.params.id;
+    // Use the Movie model to delete the movie by its ID
+    Movie.findByIdAndRemove(movieId, (err, deletedMovie) => {
+        if (err) {
+            // If there's an error, send a server error response
+            return res.status(500).json({ message: "Internal server error", error: err });
+        }
+        if (!deletedMovie) {
+            // If no movie is found, send a not found response
+            return res.status(404).json({ message: "Movie not found" });
+        }
+        // If the deletion is successful, send a success response
+        // You could also return the deletedMovie if you need to use it
+        return res.status(200).json({ message: "Movie successfully deleted" });
+    });
+})
+
+.put((req, res) => {
+    const currentTitle = req.params.title;
+    const newTitle = req.body.title;
+
+    // Find the movie by current title and update its title
+    Movie.findOneAndUpdate({ title: currentTitle }, { title: newTitle }, { new: true }, (err, updatedMovie) => {
+        if (err) {
+            res.status(400).send(err);
+        } else if (!updatedMovie) {
+            res.status(404).json({ error: 'Movie not found' });
+        } else {
+            res.status(200).json(updatedMovie);
+        }
+    });
+});
 
 app.use('/', router);
 app.listen(process.env.PORT || 8080);
